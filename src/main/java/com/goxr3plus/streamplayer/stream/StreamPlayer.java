@@ -709,45 +709,45 @@ public class StreamPlayer implements StreamPlayerInterface, Callable<Void> {
 				generateEvent(Status.EOM, getEncodedStreamPosition(), null);
 				return totalSkipped;
 			}
+		}
 
-			logger.info(() -> "Bytes to skip : " + bytes);
-			final Status previousStatus = status;
-			status = Status.SEEKING;
+		logger.info(() -> "Bytes to skip : " + bytes);
+		final Status previousStatus = status;
+		status = Status.SEEKING;
 
-			try {
-				synchronized (audioLock) {
-					generateEvent(Status.SEEKING, AudioSystem.NOT_SPECIFIED, null);
-					initAudioInputStream();
-					if (audioInputStream != null) {
+		try {
+			synchronized (audioLock) {
+				generateEvent(Status.SEEKING, AudioSystem.NOT_SPECIFIED, null);
+				initAudioInputStream();
+				if (audioInputStream != null) {
 
-						long skipped;
-						// Loop until bytes are really skipped.
-						while (totalSkipped < bytes) { // totalSkipped < (bytes-SKIP_INACCURACY_SIZE)))
-							skipped = audioInputStream.skip(bytes - totalSkipped);
-							if (skipped == 0)
-								break;
-							totalSkipped += skipped;
-							logger.info("Skipped : " + totalSkipped + "/" + bytes);
-							if (totalSkipped == -1)
-								throw new StreamPlayerException(
-									PlayerException.SKIP_NOT_SUPPORTED);
+					long skipped;
+					// Loop until bytes are really skipped.
+					while (totalSkipped < bytes) { // totalSkipped < (bytes-SKIP_INACCURACY_SIZE)))
+						skipped = audioInputStream.skip(bytes - totalSkipped);
+						if (skipped == 0)
+							break;
+						totalSkipped += skipped;
+						logger.info("Skipped : " + totalSkipped + "/" + bytes);
+						if (totalSkipped == -1)
+							throw new StreamPlayerException(
+								PlayerException.SKIP_NOT_SUPPORTED);
 
-							logger.info("Skeeping:" + totalSkipped);
-						}
+						logger.info("Skeeping:" + totalSkipped);
 					}
 				}
-				generateEvent(Status.SEEKED, getEncodedStreamPosition(), null);
-				status = Status.OPENED;
-				if (previousStatus == Status.PLAYING)
-					play();
-				else if (previousStatus == Status.PAUSED) {
-					play();
-					pause();
-				}
-
-			} catch (final IOException ex) {
-				logger.log(Level.WARNING, ex.getMessage(), ex);
 			}
+			generateEvent(Status.SEEKED, getEncodedStreamPosition(), null);
+			status = Status.OPENED;
+			if (previousStatus == Status.PLAYING)
+				play();
+			else if (previousStatus == Status.PAUSED) {
+				play();
+				pause();
+			}
+
+		} catch (final IOException ex) {
+			logger.log(Level.WARNING, ex.getMessage(), ex);
 		}
 		return totalSkipped;
 	}
@@ -768,7 +768,7 @@ public class StreamPlayer implements StreamPlayerInterface, Callable<Void> {
 
 		//Calculate Bytes
 		long totalBytes = getTotalBytes();
-		double percentage = (seconds * 100) / durationInSeconds;
+		double percentage = (seconds * 100f) / durationInSeconds;
 		long bytes = (long) (totalBytes * (percentage / 100));
 
 		return seekBytes(this.getEncodedStreamPosition() + bytes);
@@ -875,7 +875,7 @@ public class StreamPlayer implements StreamPlayerInterface, Callable<Void> {
 						// wtf i have written here omg //to fix! cause it is complicated
 						for (; toRead > 0 && (nBytesRead = audioInputStream.read(audioDataBuffer.array(), totalRead,
 							toRead)) != -1; toRead -= nBytesRead, totalRead += nBytesRead) {
-							System.out.println(nBytesRead);
+//							System.out.println(nBytesRead);
 							// Check for under run
 							if (outlet.getSourceDataLine().available() >= outlet.getSourceDataLine().getBufferSize())
 								logger.info(() -> "Underrun> Available=" + outlet.getSourceDataLine().available()
