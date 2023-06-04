@@ -874,12 +874,13 @@ public class StreamPlayer implements StreamPlayerInterface, Callable<Void> {
 						// Reads up a specified maximum number of bytes from audio stream
 						// wtf i have written here omg //to fix! cause it is complicated
 						for (; toRead > 0 && (nBytesRead = audioInputStream.read(audioDataBuffer.array(), totalRead,
-							toRead)) != -1; toRead -= nBytesRead, totalRead += nBytesRead)
-
+							toRead)) != -1; toRead -= nBytesRead, totalRead += nBytesRead) {
+							System.out.println(nBytesRead);
 							// Check for under run
 							if (outlet.getSourceDataLine().available() >= outlet.getSourceDataLine().getBufferSize())
 								logger.info(() -> "Underrun> Available=" + outlet.getSourceDataLine().available()
-									+ " , SourceDataLineBuffer=" + outlet.getSourceDataLine().getBufferSize());
+										+ " , SourceDataLineBuffer=" + outlet.getSourceDataLine().getBufferSize());
+						}
 
 						// Check if anything has been read
 						if (totalRead > 0) {
