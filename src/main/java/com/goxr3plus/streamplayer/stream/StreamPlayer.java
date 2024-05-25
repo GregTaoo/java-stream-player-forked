@@ -343,7 +343,7 @@ public class StreamPlayer implements StreamPlayerInterface, Callable<Void> {
 			audioInputStream = source.getAudioInputStream();
 
 			// Audio resources from file||URL||inputStream.
-			audioFileFormat = source.getAudioFileFormat();
+//			audioFileFormat = source.getAudioFileFormat();
 
 			// Create the Line
 			createLine();
@@ -368,56 +368,56 @@ public class StreamPlayer implements StreamPlayerInterface, Callable<Void> {
 	 * Determines Properties when the File/URL/InputStream is opened.
 	 */
 	private void determineProperties() {
-		logger.info("Entered determineProperties()!\n");
-
-		// Add AudioFileFormat properties.
-		// Expect if it is null(something bad happened).
-		if (audioFileFormat == null)
-			return;
-
-		if (!(audioFileFormat instanceof TAudioFileFormat))
-			audioProperties = new HashMap<>();
-		else {
-			// Tritonus SPI compliant audio file format.
-			audioProperties = audioFileFormat.properties();
-
-			// Clone the Map because it is not mutable.
-			audioProperties = deepCopy(audioProperties);
-
-		}
-
-		// Add JavaSound properties.
-		if (audioFileFormat.getByteLength() > 0)
-			audioProperties.put("audio.length.bytes", audioFileFormat.getByteLength());
-		if (audioFileFormat.getFrameLength() > 0)
-			audioProperties.put("audio.length.frames", audioFileFormat.getFrameLength());
-		if (audioFileFormat.getType() != null)
-			audioProperties.put("audio.type", audioFileFormat.getType());
-
-		// AudioFormat properties.
-		final AudioFormat audioFormat = audioFileFormat.getFormat();
-		if (audioFormat.getFrameRate() > 0)
-			audioProperties.put("audio.framerate.fps", audioFormat.getFrameRate());
-		if (audioFormat.getFrameSize() > 0)
-			audioProperties.put("audio.framesize.bytes", audioFormat.getFrameSize());
-		if (audioFormat.getSampleRate() > 0)
-			audioProperties.put("audio.samplerate.hz", audioFormat.getSampleRate());
-		if (audioFormat.getSampleSizeInBits() > 0)
-			audioProperties.put("audio.samplesize.bits", audioFormat.getSampleSizeInBits());
-		if (audioFormat.getChannels() > 0)
-			audioProperties.put("audio.channels", audioFormat.getChannels());
-		// Tritonus SPI compliant audio format.
-		if (audioFormat instanceof TAudioFormat)
-			audioProperties.putAll(audioFormat.properties());
-
-		// Add SourceDataLine
-		audioProperties.put("basicplayer.sourcedataline", outlet.getSourceDataLine());
-
-		// Keep this final reference for the lambda expression
-		final Map<String, Object> audioPropertiesCopy = audioProperties; // TODO: Remove, it's meaningless.
-
-		// Notify all registered StreamPlayerListeners
-		listeners.forEach(listener -> listener.opened(source.getSource(), audioPropertiesCopy));
+//		logger.info("Entered determineProperties()!\n");
+//
+//		// Add AudioFileFormat properties.
+//		// Expect if it is null(something bad happened).
+//		if (audioFileFormat == null)
+//			return;
+//
+//		if (!(audioFileFormat instanceof TAudioFileFormat))
+//			audioProperties = new HashMap<>();
+//		else {
+//			// Tritonus SPI compliant audio file format.
+//			audioProperties = audioFileFormat.properties();
+//
+//			// Clone the Map because it is not mutable.
+//			audioProperties = deepCopy(audioProperties);
+//
+//		}
+//
+//		// Add JavaSound properties.
+//		if (audioFileFormat.getByteLength() > 0)
+//			audioProperties.put("audio.length.bytes", audioFileFormat.getByteLength());
+//		if (audioFileFormat.getFrameLength() > 0)
+//			audioProperties.put("audio.length.frames", audioFileFormat.getFrameLength());
+//		if (audioFileFormat.getType() != null)
+//			audioProperties.put("audio.type", audioFileFormat.getType());
+//
+//		// AudioFormat properties.
+//		final AudioFormat audioFormat = audioFileFormat.getFormat();
+//		if (audioFormat.getFrameRate() > 0)
+//			audioProperties.put("audio.framerate.fps", audioFormat.getFrameRate());
+//		if (audioFormat.getFrameSize() > 0)
+//			audioProperties.put("audio.framesize.bytes", audioFormat.getFrameSize());
+//		if (audioFormat.getSampleRate() > 0)
+//			audioProperties.put("audio.samplerate.hz", audioFormat.getSampleRate());
+//		if (audioFormat.getSampleSizeInBits() > 0)
+//			audioProperties.put("audio.samplesize.bits", audioFormat.getSampleSizeInBits());
+//		if (audioFormat.getChannels() > 0)
+//			audioProperties.put("audio.channels", audioFormat.getChannels());
+//		// Tritonus SPI compliant audio format.
+//		if (audioFormat instanceof TAudioFormat)
+//			audioProperties.putAll(audioFormat.properties());
+//
+//		// Add SourceDataLine
+//		audioProperties.put("basicplayer.sourcedataline", outlet.getSourceDataLine());
+//
+//		// Keep this final reference for the lambda expression
+//		final Map<String, Object> audioPropertiesCopy = audioProperties; // TODO: Remove, it's meaningless.
+//
+//		// Notify all registered StreamPlayerListeners
+//		listeners.forEach(listener -> listener.opened(source.getSource(), audioPropertiesCopy));
 
 		logger.info("Exited determineProperties()!\n");
 
