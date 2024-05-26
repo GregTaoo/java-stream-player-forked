@@ -340,8 +340,8 @@ public class StreamPlayer implements StreamPlayerInterface, Callable<Void> {
 			generateEvent(Status.OPENING, getEncodedStreamPosition(), source);
 
 			// Audio resources from file||URL||inputStream.
-			if (source instanceof AudioInputStream) {
-				audioInputStream = (AudioInputStream) source;
+			if (source.getSource() instanceof AudioInputStream) {
+				audioInputStream = (AudioInputStream) source.getSource();
 			} else {
 				audioInputStream = source.getAudioInputStream();
 			}
