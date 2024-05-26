@@ -520,7 +520,9 @@ public class StreamPlayer implements StreamPlayerInterface, Callable<Void> {
 			}
 
 			// Create decoded Stream
-			audioInputStream = AudioSystem.getAudioInputStream(targetFormat, audioInputStream);
+			if (!(source instanceof AudioInputStream)) {
+				audioInputStream = AudioSystem.getAudioInputStream(targetFormat, audioInputStream);
+			}
 			final DataLine.Info lineInfo = new DataLine.Info(SourceDataLine.class, audioInputStream.getFormat(),
 				AudioSystem.NOT_SPECIFIED);
 			if (!AudioSystem.isLineSupported(lineInfo))
