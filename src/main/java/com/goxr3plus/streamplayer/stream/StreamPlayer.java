@@ -10,19 +10,12 @@
 
 package com.goxr3plus.streamplayer.stream;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -45,6 +38,11 @@ import javax.sound.sampled.Mixer;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import org.jflac.FLACDecoder;
+import org.jflac.PCMProcessor;
+import org.jflac.io.RandomFileInputStream;
+import org.jflac.metadata.StreamInfo;
+import org.jflac.util.ByteData;
 import org.tritonus.share.sampled.TAudioFormat;
 import org.tritonus.share.sampled.file.TAudioFileFormat;
 
@@ -468,6 +466,53 @@ public class StreamPlayer implements StreamPlayerInterface, Callable<Void> {
 
 	}
 
+
+	private static class PCMDataProcessor implements PCMProcessor {
+		private final OutputStream outputStream;
+
+		public PCMDataProcessor(OutputStream outputStream) {
+			this.outputStream = outputStream;
+		}
+
+		@Override
+		public void processStreamInfo(StreamInfo streamInfo) {
+			// Process stream info if needed
+		}
+
+		@Override
+		public void processPCM(ByteData byteData) {
+			try {
+				outputStream.write(byteData.getData(), 0, byteData.getLen());
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	public static InputStream decodeFlacToInputStream(InputStream inputStream) {
+		try {
+			PipedInputStream pipedInputStream = new PipedInputStream();
+			PipedOutputStream pipedOutputStream = new PipedOutputStream(pipedInputStream);
+
+			try (ExecutorService executorService = Executors.newSingleThreadExecutor()) {
+				executorService.submit(() -> {
+					FLACDecoder decoder = new FLACDecoder(inputStream);
+					PCMDataProcessor processor = new PCMDataProcessor(pipedOutputStream);
+					decoder.addPCMProcessor(processor);
+					try {
+						decoder.decode();
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+				});
+			}
+
+			return pipedInputStream;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	/**
 	 * Inits a DateLine.<br>
 	 * <p>
@@ -520,8 +565,10 @@ public class StreamPlayer implements StreamPlayerInterface, Callable<Void> {
 			}
 
 			// Create decoded Stream
-			if (!(source instanceof AudioInputStream)) {
+			if (!sourceFormat.toString().toLowerCase().startsWith("flac")) {
 				audioInputStream = AudioSystem.getAudioInputStream(targetFormat, audioInputStream);
+			} else {
+				audioInputStream = decodeFlacToInputStream(audioInputStream);
 			}
 			final DataLine.Info lineInfo = new DataLine.Info(SourceDataLine.class, audioInputStream.getFormat(),
 				AudioSystem.NOT_SPECIFIED);
