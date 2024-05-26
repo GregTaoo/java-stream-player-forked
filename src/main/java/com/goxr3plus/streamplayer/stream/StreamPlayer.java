@@ -568,7 +568,7 @@ public class StreamPlayer implements StreamPlayerInterface, Callable<Void> {
 			if (!sourceFormat.toString().toLowerCase().startsWith("flac")) {
 				audioInputStream = AudioSystem.getAudioInputStream(targetFormat, audioInputStream);
 			} else {
-				audioInputStream = decodeFlacToInputStream(audioInputStream);
+				audioInputStream = new AudioInputStream(decodeFlacToInputStream(audioInputStream), targetFormat, AudioSystem.NOT_SPECIFIED);
 			}
 			final DataLine.Info lineInfo = new DataLine.Info(SourceDataLine.class, audioInputStream.getFormat(),
 				AudioSystem.NOT_SPECIFIED);
