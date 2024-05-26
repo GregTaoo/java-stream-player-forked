@@ -16,11 +16,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -494,18 +490,16 @@ public class StreamPlayer implements StreamPlayerInterface, Callable<Void> {
 			PipedInputStream pipedInputStream = new PipedInputStream();
 			PipedOutputStream pipedOutputStream = new PipedOutputStream(pipedInputStream);
 
-			try (ExecutorService executorService = Executors.newSingleThreadExecutor()) {
-				executorService.submit(() -> {
-					FLACDecoder decoder = new FLACDecoder(inputStream);
-					PCMDataProcessor processor = new PCMDataProcessor(pipedOutputStream);
-					decoder.addPCMProcessor(processor);
-					try {
-						decoder.decode();
-					} catch (IOException e) {
-						throw new RuntimeException(e);
-					}
-				});
-			}
+			CompletableFuture.runAsync(() -> {
+				FLACDecoder decoder = new FLACDecoder(inputStream);
+				PCMDataProcessor processor = new PCMDataProcessor(pipedOutputStream);
+				decoder.addPCMProcessor(processor);
+				try {
+					decoder.decode();
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			});
 
 			return pipedInputStream;
 		} catch (IOException e) {
