@@ -12,6 +12,9 @@ import org.jaudiotagger.audio.mp3.MP3AudioHeader;
 import org.jaudiotagger.audio.mp3.MP3File;
 
 import com.goxr3plus.streamplayer.enums.AudioType;
+import org.jflac.FLACDecoder;
+import org.jflac.io.RandomFileInputStream;
+import org.jflac.metadata.StreamInfo;
 
 public final class TimeTool {
 
@@ -104,9 +107,7 @@ public final class TimeTool {
 	 */
 	public static long durationInMilliseconds(final String input, final AudioType audioType) {
 		return audioType == AudioType.FILE ? durationInMilliseconds_Part2(new File(input))
-				: (audioType == AudioType.URL || audioType == AudioType.INPUTSTREAM || audioType == AudioType.UNKNOWN)
-						? -1
-						: -1;
+				: -1;
 	}
 
 	/**
@@ -127,7 +128,7 @@ public final class TimeTool {
 			// MP3?
 			if ("mp3".equals(extension)) {
 				try {
-					milliseconds = new MP3File(file).getMP3AudioHeader().getTrackLength() * 1000;
+					milliseconds = new MP3File(file).getMP3AudioHeader().getTrackLength() * 1000L;
 					if (milliseconds == 0) {
 						MP3AudioHeader header =  new MP3File(file).getMP3AudioHeader();
 						int samplesPerFrame;
@@ -171,6 +172,22 @@ public final class TimeTool {
 					milliseconds = (long) (((double) file.length() / ( format.getFrameSize() * (double) format.getFrameRate())) * 1000);
 				} catch (IOException | UnsupportedAudioFileException ex) {
 					System.err.println("Problem getting the time of-> " + file.getAbsolutePath());
+				}
+			} else if ("flac".equals(extension)) {
+				try {
+					FLACDecoder decoder = new FLACDecoder(new RandomFileInputStream(file));
+					StreamInfo streamInfo = decoder.readStreamInfo();
+
+					if (streamInfo != null) {
+						long totalSamples = streamInfo.getTotalSamples();
+						int sampleRate = streamInfo.getSampleRate();
+
+						if (sampleRate > 0) {
+							return totalSamples / sampleRate * 1000;
+						}
+					}
+				} catch (Exception e) {
+					milliseconds = 0;
 				}
 			}
 		}
