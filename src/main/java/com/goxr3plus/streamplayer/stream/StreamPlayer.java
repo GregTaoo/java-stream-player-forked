@@ -485,23 +485,29 @@ public class StreamPlayer implements StreamPlayerInterface, Callable<Void> {
 		}
 	}
 
-	public static InputStream decodeFlacToInputStream(InputStream inputStream) {
+	public static AudioInputStream decodeFlacToInputStream(InputStream inputStream) {
 		try {
 			PipedInputStream pipedInputStream = new PipedInputStream();
 			PipedOutputStream pipedOutputStream = new PipedOutputStream(pipedInputStream);
-
+			FLACDecoder decoder = new FLACDecoder(inputStream);
+			PCMDataProcessor processor = new PCMDataProcessor(pipedOutputStream);
+			decoder.addPCMProcessor(processor);
+			StreamInfo streamInfo = decoder.getStreamInfo();
+			AudioFormat audioFormat = new AudioFormat(
+					streamInfo.getSampleRate(),
+					streamInfo.getBitsPerSample(),
+					streamInfo.getChannels(),
+					true,
+					false
+			);
 			CompletableFuture.runAsync(() -> {
-				FLACDecoder decoder = new FLACDecoder(inputStream);
-				PCMDataProcessor processor = new PCMDataProcessor(pipedOutputStream);
-				decoder.addPCMProcessor(processor);
 				try {
 					decoder.decode();
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
 			});
-
-			return pipedInputStream;
+			return new AudioInputStream(pipedInputStream, audioFormat, AudioSystem.NOT_SPECIFIED);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -562,7 +568,7 @@ public class StreamPlayer implements StreamPlayerInterface, Callable<Void> {
 			if (!sourceFormat.toString().toLowerCase().startsWith("flac")) {
 				audioInputStream = AudioSystem.getAudioInputStream(targetFormat, audioInputStream);
 			} else {
-				audioInputStream = new AudioInputStream(decodeFlacToInputStream(audioInputStream), targetFormat, AudioSystem.NOT_SPECIFIED);
+				audioInputStream = decodeFlacToInputStream(audioInputStream);
 			}
 			final DataLine.Info lineInfo = new DataLine.Info(SourceDataLine.class, audioInputStream.getFormat(),
 				AudioSystem.NOT_SPECIFIED);
