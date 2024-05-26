@@ -334,11 +334,11 @@ public class StreamPlayer implements StreamPlayerInterface, Callable<Void> {
 			generateEvent(Status.OPENING, getEncodedStreamPosition(), source);
 
 			// Audio resources from file||URL||inputStream.
-			if (source.getSource() instanceof AudioInputStream) {
-				audioInputStream = (AudioInputStream) source.getSource();
-			} else {
+//			if (source.getSource() instanceof AudioInputStream) {
+//				audioInputStream = (AudioInputStream) source.getSource();
+//			} else {
 				audioInputStream = source.getAudioInputStream();
-			}
+//			}
 
 			// Audio resources from file||URL||inputStream.
 //			audioFileFormat = source.getAudioFileFormat();
