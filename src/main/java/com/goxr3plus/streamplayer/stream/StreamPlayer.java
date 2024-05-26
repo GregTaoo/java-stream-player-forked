@@ -493,13 +493,17 @@ public class StreamPlayer implements StreamPlayerInterface, Callable<Void> {
 			PCMDataProcessor processor = new PCMDataProcessor(pipedOutputStream);
 			decoder.addPCMProcessor(processor);
 			StreamInfo streamInfo = decoder.getStreamInfo();
-			AudioFormat audioFormat = new AudioFormat(
-					streamInfo.getSampleRate(),
-					streamInfo.getBitsPerSample(),
+			int nSampleSizeInBits = streamInfo.getBitsPerSample();
+			if (nSampleSizeInBits != 8) nSampleSizeInBits = 16;
+			final AudioFormat targetFormat = new AudioFormat(
+					AudioFormat.Encoding.PCM_SIGNED,
+					(float) (streamInfo.getSampleRate()),
+					nSampleSizeInBits,
 					streamInfo.getChannels(),
-					true,
-					false
-			);
+					nSampleSizeInBits / 8 * streamInfo.getChannels(),
+					streamInfo.getSampleRate(),
+					false);
+
 			CompletableFuture.runAsync(() -> {
 				try {
 					decoder.decode();
@@ -507,7 +511,7 @@ public class StreamPlayer implements StreamPlayerInterface, Callable<Void> {
 					throw new RuntimeException(e);
 				}
 			});
-			return new AudioInputStream(pipedInputStream, audioFormat, AudioSystem.NOT_SPECIFIED);
+			return new AudioInputStream(pipedInputStream, targetFormat, AudioSystem.NOT_SPECIFIED);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
